@@ -76,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
           Toast.makeText(MainActivity.this, "Выбирите викторину", Toast.LENGTH_SHORT).show();
         } else {
           Intent intent = new Intent(MainActivity.this, QuizActivity.class);
+          intent.putExtra("selectedQuiz", selectedQuiz);
           startActivity(intent);
           finish();
         }
