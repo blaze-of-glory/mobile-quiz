@@ -270,6 +270,13 @@ public class QuizActivity extends AppCompatActivity {
       option2.setText(questionsList.get(currentQuestionPosition).getOption2());
       option3.setText(questionsList.get(currentQuestionPosition).getOption3());
       option4.setText(questionsList.get(currentQuestionPosition).getOption4());
+    } else {
+      Intent intent = new Intent(QuizActivity.this, QuizResults.class);
+      intent.putExtra("correctAnswers", getCorrectAnswers());
+      intent.putExtra("incorrectAnswers", getIncorrectAnswers());
+
+      startActivity(intent);
+      finish();
     }
 
   }
