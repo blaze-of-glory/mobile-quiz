@@ -28,7 +28,10 @@ public class QuizActivity extends AppCompatActivity {
   private int seconds = 0;
   private int totalTimeInMinutes = 1;
 
-  private final List<QuestionsList> questionsList = new ArrayList<>();
+  private List<QuestionsList> questionsList;
+
+  private int currentQuestionPosition = 0;
+  private String userAnswer = "";
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +56,16 @@ public class QuizActivity extends AppCompatActivity {
 
     quizName.setText(getSelectedQuiz);
 
+    questionsList = QuestionStorage.getQuestions(getSelectedQuiz);
+
     startTimer(timer);
+
+    questionsCount.setText((currentQuestionPosition + 1) + "/" + questionsList.size());
+    questionText.setText(questionsList.get(0).getQuestion());
+    option1.setText(questionsList.get(0).getOption1());
+    option2.setText(questionsList.get(0).getOption2());
+    option3.setText(questionsList.get(0).getOption3());
+    option4.setText(questionsList.get(0).getOption4());
 
     backBtn.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -61,6 +73,70 @@ public class QuizActivity extends AppCompatActivity {
         goBack();
       }
     });
+
+    option1.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        if (userAnswer.isEmpty()) {
+          userAnswer = option1.getText().toString();
+          option1.setBackgroundResource(R.drawable.incorrect_answer_background);
+
+          revealAnswer();
+          questionsList.get(currentQuestionPosition).setUserAnswer(userAnswer);
+        }
+      }
+    });
+
+    option2.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        if (userAnswer.isEmpty()) {
+          userAnswer = option2.getText().toString();
+          option2.setBackgroundResource(R.drawable.incorrect_answer_background);
+
+          revealAnswer();
+          questionsList.get(currentQuestionPosition).setUserAnswer(userAnswer);
+        }
+      }
+    });
+
+    option3.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        if (userAnswer.isEmpty()) {
+          userAnswer = option3.getText().toString();
+          option3.setBackgroundResource(R.drawable.incorrect_answer_background);
+
+          revealAnswer();
+          questionsList.get(currentQuestionPosition).setUserAnswer(userAnswer);
+        }
+      }
+    });
+
+    option4.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        if (userAnswer.isEmpty()) {
+          userAnswer = option4.getText().toString();
+          option4.setBackgroundResource(R.drawable.incorrect_answer_background);
+
+          revealAnswer();
+          questionsList.get(currentQuestionPosition).setUserAnswer(userAnswer);
+        }
+      }
+    });
+
+    nextBtn.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        if (userAnswer.isEmpty()) {
+          Toast.makeText(QuizActivity.this, "Выберите ответ", Toast.LENGTH_SHORT).show();
+        } else {
+          goNextQuestion();
+        }
+      }
+    });
+
   }
 
   private void startTimer (TextView timerTextView) {
@@ -158,5 +234,43 @@ public class QuizActivity extends AppCompatActivity {
   @Override
   public void onBackPressed() {
     goBack();
+  }
+
+  private void revealAnswer() {
+    final String answer = questionsList.get(currentQuestionPosition).getAnswer();
+
+    if (option1.getText().toString().equals(answer)) {
+      option1.setBackgroundResource(R.drawable.correct_answer_background);
+    } else if (option2.getText().toString().equals(answer)) {
+      option2.setBackgroundResource(R.drawable.correct_answer_background);
+    } else if (option3.getText().toString().equals(answer)) {
+      option3.setBackgroundResource(R.drawable.correct_answer_background);
+    } else if (option4.getText().toString().equals(answer)) {
+      option4.setBackgroundResource(R.drawable.correct_answer_background);
+    }
+  }
+
+  private void goNextQuestion() {
+    currentQuestionPosition++;
+
+    if ((currentQuestionPosition + 1) == questionsList.size()) {
+      nextBtn.setText("Готово");
+    }
+
+    if (currentQuestionPosition < questionsList.size()) {
+      userAnswer = "";
+      option1.setBackgroundResource(R.drawable.white_rounded_background);
+      option2.setBackgroundResource(R.drawable.white_rounded_background);
+      option3.setBackgroundResource(R.drawable.white_rounded_background);
+      option4.setBackgroundResource(R.drawable.white_rounded_background);
+
+      questionsCount.setText((currentQuestionPosition + 1) + "/" + questionsList.size());
+      questionText.setText(questionsList.get(currentQuestionPosition).getQuestion());
+      option1.setText(questionsList.get(currentQuestionPosition).getOption1());
+      option2.setText(questionsList.get(currentQuestionPosition).getOption2());
+      option3.setText(questionsList.get(currentQuestionPosition).getOption3());
+      option4.setText(questionsList.get(currentQuestionPosition).getOption4());
+    }
+
   }
 }
