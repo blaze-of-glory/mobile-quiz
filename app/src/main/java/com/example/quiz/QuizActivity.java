@@ -1,5 +1,6 @@
 package com.example.quiz;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 
@@ -10,10 +11,15 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.Objects;
 
 public class QuizActivity extends AppCompatActivity {
 
@@ -23,15 +29,13 @@ public class QuizActivity extends AppCompatActivity {
   private AppCompatButton option1, option2, option3, option4;
   private AppCompatButton nextBtn;
 
-  private Timer quizTimer;
-
-  private int seconds = 0;
-  private int totalTimeInMinutes = 1;
-
   private List<QuestionsList> questionsList;
 
   private int currentQuestionPosition = 0;
   private String userAnswer = "";
+
+  private final FirebaseDatabase db = FirebaseDatabase.getInstance();
+  private final DatabaseReference dbRef = db.getReference();
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +43,6 @@ public class QuizActivity extends AppCompatActivity {
     setContentView(R.layout.quiz_activity);
 
     final ImageView backBtn = findViewById(R.id.backBtn);
-    final TextView timer = findViewById(R.id.timer);
     final TextView quizName = findViewById(R.id.quizName);
 
     final String getSelectedQuiz = getIntent().getStringExtra("selectedQuiz");
@@ -55,17 +58,6 @@ public class QuizActivity extends AppCompatActivity {
     nextBtn = findViewById(R.id.nextBtn);
 
     quizName.setText(getSelectedQuiz);
-
-    questionsList = QuestionStorage.getQuestions(getSelectedQuiz);
-
-    startTimer(timer);
-
-    questionsCount.setText((currentQuestionPosition + 1) + "/" + questionsList.size());
-    questionText.setText(questionsList.get(0).getQuestion());
-    option1.setText(questionsList.get(0).getOption1());
-    option2.setText(questionsList.get(0).getOption2());
-    option3.setText(questionsList.get(0).getOption3());
-    option4.setText(questionsList.get(0).getOption4());
 
     backBtn.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -137,55 +129,22 @@ public class QuizActivity extends AppCompatActivity {
       }
     });
 
-  }
-
-  private void startTimer (TextView timerTextView) {
-
-    quizTimer = new Timer();
-    quizTimer.scheduleAtFixedRate(new TimerTask() {
+    dbRef.addValueEventListener(new ValueEventListener() {
       @Override
-      public void run() {
-        if (seconds == 0 && totalTimeInMinutes == 0) {
-          quizTimer.purge();
-          quizTimer.cancel();
+      public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+        questionsList = loadQuestions(dataSnapshot, getSelectedQuiz);
 
-          Toast.makeText(QuizActivity.this, "Время вышло", Toast.LENGTH_LONG).show();
-
-          Intent intent = new Intent(QuizActivity.this, QuizResults.class);
-          intent.putExtra("correctAnswers", getCorrectAnswers());
-          intent.putExtra("incorrectAnswers", getIncorrectAnswers());
-
-          startActivity(intent);
-          finish();
-        } else if (seconds == 0) {
-          totalTimeInMinutes--;
-          seconds = 59;
-        } else {
-          seconds--;
-        }
-
-        runOnUiThread(new Runnable() {
-          @Override
-          public void run() {
-
-            String finalMinutes = String.valueOf(totalTimeInMinutes);
-            String finalSeconds = String.valueOf(seconds);
-
-            if (finalMinutes.length() == 1) {
-              finalMinutes = "0" + finalMinutes;
-            }
-
-            if (finalSeconds.length() == 1) {
-              finalSeconds = "0" + finalSeconds;
-            }
-
-            timerTextView.setText(finalMinutes + ":" + finalSeconds);
-
-          }
-        });
-
+        questionsCount.setText((currentQuestionPosition + 1) + "/" + questionsList.size());
+        questionText.setText(questionsList.get(0).getQuestion());
+        option1.setText(questionsList.get(0).getOption1());
+        option2.setText(questionsList.get(0).getOption2());
+        option3.setText(questionsList.get(0).getOption3());
+        option4.setText(questionsList.get(0).getOption4());
       }
-    }, 1000, 1000);
+
+      @Override
+      public void onCancelled(@NonNull DatabaseError error) { }
+    });
 
   }
 
@@ -224,9 +183,6 @@ public class QuizActivity extends AppCompatActivity {
   }
 
   public void goBack() {
-    quizTimer.purge();
-    quizTimer.cancel();
-
     startActivity(new Intent(QuizActivity.this, MainActivity.class));
     finish();
   }
@@ -278,6 +234,26 @@ public class QuizActivity extends AppCompatActivity {
       startActivity(intent);
       finish();
     }
+  }
 
+  public List<QuestionsList> loadQuestions(DataSnapshot dataSnapshot, String quiz) {
+    final List<QuestionsList> quizQuestionsList = new ArrayList<>();
+    DataSnapshot quizData = dataSnapshot.child("quizzes").child(quiz);
+
+    for (DataSnapshot ds : quizData.getChildren()) {
+      final QuestionsList questionsList = new QuestionsList(
+        Objects.requireNonNull(ds.child("text").getValue()).toString(),
+        Objects.requireNonNull(ds.child("option1").getValue()).toString(),
+        Objects.requireNonNull(ds.child("option2").getValue()).toString(),
+        Objects.requireNonNull(ds.child("option3").getValue()).toString(),
+        Objects.requireNonNull(ds.child("option4").getValue()).toString(),
+        Objects.requireNonNull(ds.child("answer").getValue()).toString(),
+        ""
+      );
+
+      quizQuestionsList.add(questionsList);
+    }
+
+    return quizQuestionsList;
   }
 }
