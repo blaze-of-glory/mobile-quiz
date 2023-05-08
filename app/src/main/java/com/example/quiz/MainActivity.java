@@ -24,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
     final LinearLayout personsQuiz = findViewById(R.id.personsQuiz);
 
     final Button startQuizBtn = findViewById(R.id.startQuizBtn);
+    final Button openScoreBoardBtn = findViewById(R.id.scoreQuizBtn);
 
     flagsQuiz.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -80,6 +81,14 @@ public class MainActivity extends AppCompatActivity {
           startActivity(intent);
           finish();
         }
+      }
+    });
+
+    openScoreBoardBtn.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        startActivity(new Intent(MainActivity.this, ScoreBoard.class));
+        finish();
       }
     });
   }
