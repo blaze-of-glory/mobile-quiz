@@ -34,8 +34,7 @@ public class QuizActivity extends AppCompatActivity {
   private int currentQuestionPosition = 0;
   private String userAnswer = "";
 
-  private final FirebaseDatabase db = FirebaseDatabase.getInstance();
-  private final DatabaseReference dbRef = db.getReference();
+  private final DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {

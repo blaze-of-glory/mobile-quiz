@@ -17,8 +17,7 @@ import java.util.ArrayList;
 
 public class ScoreBoard extends AppCompatActivity {
 
-  private final FirebaseDatabase db = FirebaseDatabase.getInstance();
-  private final DatabaseReference dbRef = db.getReference();
+  private final DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
 
   ListView scoreBoardList;
 
@@ -44,7 +43,7 @@ public class ScoreBoard extends AppCompatActivity {
     DataSnapshot scores = dataSnapshot.child("score-board");
     ArrayList<String> scoreList = new ArrayList<>();
 
-    for (DataSnapshot ds : scores.child("score-board").getChildren()) {
+    for (DataSnapshot ds : scores.getChildren()) {
       scoreList.add(String.valueOf(ds.child("name").getValue()) + " : " + String.valueOf(ds.child("score").getValue()));
     }
 
