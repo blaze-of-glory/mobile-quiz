@@ -1,12 +1,17 @@
 package com.example.quiz;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatButton;
-
-import android.content.Intent;
 import android.os.Bundle;
+
+import androidx.annotation.IdRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.AppCompatButton;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,7 +26,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class QuizActivity extends AppCompatActivity {
+public class QuizFragment extends Fragment {
+
+  private static final String SELECTED_QUIZ = "selectedQuiz";
+  private static final String CORRECT_ANSWERS = "correctAnswers";
+  private static final String INCORRECT_ANSWERS = "incorrectAnswers";
 
   private TextView questionsCount;
   private TextView questionText;
@@ -29,6 +38,7 @@ public class QuizActivity extends AppCompatActivity {
   private AppCompatButton option1, option2, option3, option4;
   private AppCompatButton nextBtn;
 
+  private String selectedQuiz;
   private List<QuestionsList> questionsList;
 
   private int currentQuestionPosition = 0;
@@ -37,31 +47,36 @@ public class QuizActivity extends AppCompatActivity {
   private final DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
 
   @Override
-  protected void onCreate(Bundle savedInstanceState) {
+  public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.quiz_activity);
+    if (getArguments() != null) {
+      selectedQuiz = getArguments().getString(SELECTED_QUIZ);
+    }
+  }
 
-    final ImageView backBtn = findViewById(R.id.backBtn);
-    final TextView quizName = findViewById(R.id.quizName);
+  @Override
+  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
 
-    final String getSelectedQuiz = getIntent().getStringExtra("selectedQuiz");
+    final ImageView backBtn = view.findViewById(R.id.backBtn);
+    final TextView quizName = view.findViewById(R.id.quizName);
 
-    questionsCount = findViewById(R.id.questionsCount);
-    questionText = findViewById(R.id.questionText);
+    questionsCount = view.findViewById(R.id.questionsCount);
+    questionText = view.findViewById(R.id.questionText);
 
-    option1 = findViewById(R.id.option1);
-    option2 = findViewById(R.id.option2);
-    option3 = findViewById(R.id.option3);
-    option4 = findViewById(R.id.option4);
+    option1 = view.findViewById(R.id.option1);
+    option2 = view.findViewById(R.id.option2);
+    option3 = view.findViewById(R.id.option3);
+    option4 = view.findViewById(R.id.option4);
 
-    nextBtn = findViewById(R.id.nextBtn);
+    nextBtn = view.findViewById(R.id.nextBtn);
 
-    quizName.setText(getSelectedQuiz);
+    quizName.setText(selectedQuiz);
 
     backBtn.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        goBack();
+        switchFragment(R.id.fragment_container_view, MenuFragment.class, null);
       }
     });
 
@@ -121,7 +136,7 @@ public class QuizActivity extends AppCompatActivity {
       @Override
       public void onClick(View view) {
         if (userAnswer.isEmpty()) {
-          Toast.makeText(QuizActivity.this, "Выберите ответ", Toast.LENGTH_SHORT).show();
+          Toast.makeText(getContext(), "Выберите ответ", Toast.LENGTH_SHORT).show();
         } else {
           goNextQuestion();
         }
@@ -131,7 +146,7 @@ public class QuizActivity extends AppCompatActivity {
     dbRef.addValueEventListener(new ValueEventListener() {
       @Override
       public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-        questionsList = loadQuestions(dataSnapshot, getSelectedQuiz);
+        questionsList = loadQuestions(dataSnapshot, selectedQuiz);
 
         questionsCount.setText((currentQuestionPosition + 1) + "/" + questionsList.size());
         questionText.setText(questionsList.get(0).getQuestion());
@@ -144,51 +159,34 @@ public class QuizActivity extends AppCompatActivity {
       @Override
       public void onCancelled(@NonNull DatabaseError error) { }
     });
-
-  }
-
-  private int getCorrectAnswers () {
-
-    int correctAnswers = 0;
-
-    for (int i = 0; i < questionsList.size(); i++) {
-
-      final String getUserAnswer = questionsList.get(i).getUserAnswer();
-      final String getAnswer = questionsList.get(i).getAnswer();
-
-      if (getUserAnswer.equals(getAnswer)) {
-        correctAnswers++;
-      }
-    }
-
-    return correctAnswers;
-  }
-
-  private int getIncorrectAnswers () {
-
-    int incorrectAnswers = 0;
-
-    for (int i = 0; i < questionsList.size(); i++) {
-
-      final String getUserAnswer = questionsList.get(i).getUserAnswer();
-      final String getAnswer = questionsList.get(i).getAnswer();
-
-      if (!getUserAnswer.equals(getAnswer)) {
-        incorrectAnswers++;
-      }
-    }
-
-    return incorrectAnswers;
-  }
-
-  public void goBack() {
-    startActivity(new Intent(QuizActivity.this, MainActivity.class));
-    finish();
   }
 
   @Override
-  public void onBackPressed() {
-    goBack();
+  public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                           Bundle savedInstanceState) {
+    // Inflate the layout for this fragment
+    return inflater.inflate(R.layout.fragment_quiz, container, false);
+  }
+
+  public List<QuestionsList> loadQuestions(DataSnapshot dataSnapshot, String quiz) {
+    final List<QuestionsList> quizQuestionsList = new ArrayList<>();
+    DataSnapshot quizData = dataSnapshot.child("quizzes").child(quiz);
+
+    for (DataSnapshot ds : quizData.getChildren()) {
+      final QuestionsList questionsList = new QuestionsList(
+        Objects.requireNonNull(ds.child("text").getValue()).toString(),
+        Objects.requireNonNull(ds.child("option1").getValue()).toString(),
+        Objects.requireNonNull(ds.child("option2").getValue()).toString(),
+        Objects.requireNonNull(ds.child("option3").getValue()).toString(),
+        Objects.requireNonNull(ds.child("option4").getValue()).toString(),
+        Objects.requireNonNull(ds.child("answer").getValue()).toString(),
+        ""
+      );
+
+      quizQuestionsList.add(questionsList);
+    }
+
+    return quizQuestionsList;
   }
 
   private void revealAnswer() {
@@ -226,33 +224,50 @@ public class QuizActivity extends AppCompatActivity {
       option3.setText(questionsList.get(currentQuestionPosition).getOption3());
       option4.setText(questionsList.get(currentQuestionPosition).getOption4());
     } else {
-      Intent intent = new Intent(QuizActivity.this, QuizResults.class);
-      intent.putExtra("correctAnswers", getCorrectAnswers());
-      intent.putExtra("incorrectAnswers", getIncorrectAnswers());
-
-      startActivity(intent);
-      finish();
+      Bundle bundle = new Bundle();
+      bundle.putString(CORRECT_ANSWERS, String.valueOf(getCorrectAnswers()));
+      bundle.putString(INCORRECT_ANSWERS, String.valueOf(getIncorrectAnswers()));
+      switchFragment(R.id.fragment_container_view, QuizResultsFragment.class, bundle);
     }
   }
 
-  public List<QuestionsList> loadQuestions(DataSnapshot dataSnapshot, String quiz) {
-    final List<QuestionsList> quizQuestionsList = new ArrayList<>();
-    DataSnapshot quizData = dataSnapshot.child("quizzes").child(quiz);
+  private int getCorrectAnswers () {
 
-    for (DataSnapshot ds : quizData.getChildren()) {
-      final QuestionsList questionsList = new QuestionsList(
-        Objects.requireNonNull(ds.child("text").getValue()).toString(),
-        Objects.requireNonNull(ds.child("option1").getValue()).toString(),
-        Objects.requireNonNull(ds.child("option2").getValue()).toString(),
-        Objects.requireNonNull(ds.child("option3").getValue()).toString(),
-        Objects.requireNonNull(ds.child("option4").getValue()).toString(),
-        Objects.requireNonNull(ds.child("answer").getValue()).toString(),
-        ""
-      );
+    int correctAnswers = 0;
 
-      quizQuestionsList.add(questionsList);
+    for (int i = 0; i < questionsList.size(); i++) {
+
+      final String getUserAnswer = questionsList.get(i).getUserAnswer();
+      final String getAnswer = questionsList.get(i).getAnswer();
+
+      if (getUserAnswer.equals(getAnswer)) {
+        correctAnswers++;
+      }
     }
 
-    return quizQuestionsList;
+    return correctAnswers;
+  }
+
+  private int getIncorrectAnswers () {
+
+    int incorrectAnswers = 0;
+
+    for (int i = 0; i < questionsList.size(); i++) {
+
+      final String getUserAnswer = questionsList.get(i).getUserAnswer();
+      final String getAnswer = questionsList.get(i).getAnswer();
+
+      if (!getUserAnswer.equals(getAnswer)) {
+        incorrectAnswers++;
+      }
+    }
+
+    return incorrectAnswers;
+  }
+
+  public void switchFragment(@IdRes int containerViewId, @NonNull Class<? extends androidx.fragment.app.Fragment> fragmentClass, @Nullable android.os.Bundle args) {
+    FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
+    transaction.replace(containerViewId, fragmentClass, args);
+    transaction.commit();
   }
 }
