@@ -6,13 +6,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListView;
+import android.widget.TextView;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -24,7 +25,8 @@ import java.util.ArrayList;
 
 public class ScoreBoardFragment extends Fragment {
 
-  ListView scoreBoardList;
+  private RecyclerView recyclerView;
+  private RecyclerView.Adapter mAdapter;
 
   private final DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
 
@@ -32,7 +34,17 @@ public class ScoreBoardFragment extends Fragment {
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
-    scoreBoardList = view.findViewById(R.id.scoreList);
+    recyclerView = view.findViewById(R.id.score_recycler_view);
+
+    recyclerView.setHasFixedSize(true);
+
+    RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
+    recyclerView.setLayoutManager(layoutManager);
+
+    ArrayList<String> myDataset = new ArrayList<>();
+    mAdapter = new MyAdapter(myDataset);
+    recyclerView.setAdapter(mAdapter);
+
     final Button backToMenuBtn = view.findViewById(R.id.backToMenuBtn);
 
     backToMenuBtn.setOnClickListener(new View.OnClickListener() {
@@ -51,15 +63,14 @@ public class ScoreBoardFragment extends Fragment {
       }
 
       @Override
-      public void onCancelled(@NonNull DatabaseError error) { }
+      public void onCancelled(@NonNull DatabaseError error) {
+      }
     });
 
   }
 
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                           Bundle savedInstanceState) {
-    // Inflate the layout for this fragment
+  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     return inflater.inflate(R.layout.fragment_score_board, container, false);
   }
 
@@ -71,7 +82,43 @@ public class ScoreBoardFragment extends Fragment {
       scoreList.add(String.valueOf(ds.child("name").getValue()) + " : " + String.valueOf(ds.child("score").getValue()));
     }
 
-    ArrayAdapter arrayAdapter = new ArrayAdapter(getContext(), R.layout.list_template, scoreList);
-    scoreBoardList.setAdapter(arrayAdapter);
+    mAdapter = new MyAdapter(scoreList);
+    recyclerView.setAdapter(mAdapter);
   }
+
+  static class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
+    private final ArrayList<String> mDataset;
+
+    public static class MyViewHolder extends RecyclerView.ViewHolder {
+      public TextView textView;
+      public MyViewHolder(TextView v) {
+        super(v);
+        textView = v;
+      }
+    }
+
+    public MyAdapter(ArrayList<String> myDataset) {
+      mDataset = myDataset;
+    }
+
+    @NonNull
+    @Override
+    public MyAdapter.MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+      TextView v = (TextView) LayoutInflater.from(parent.getContext())
+        .inflate(androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, parent, false);
+
+      return new MyViewHolder(v);
+    }
+
+    @Override
+    public void onBindViewHolder(MyViewHolder holder, int position) {
+      holder.textView.setText(mDataset.get(position));
+    }
+
+    @Override
+    public int getItemCount() {
+      return mDataset.size();
+    }
+  }
+
 }
