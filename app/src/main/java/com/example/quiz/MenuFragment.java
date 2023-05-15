@@ -25,56 +25,56 @@ public class MenuFragment extends Fragment {
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
-    final LinearLayout flagsQuiz = view.findViewById(R.id.flagsQuiz);
-    final LinearLayout capitalsQuiz = view.findViewById(R.id.capitalsQuiz);
-    final LinearLayout historyQuiz = view.findViewById(R.id.historyQuiz);
-    final LinearLayout personsQuiz = view.findViewById(R.id.personsQuiz);
+    final LinearLayout topic1 = view.findViewById(R.id.flagsQuiz);
+    final LinearLayout topic2 = view.findViewById(R.id.capitalsQuiz);
+    final LinearLayout topic3 = view.findViewById(R.id.historyQuiz);
+    final LinearLayout topic4 = view.findViewById(R.id.personsQuiz);
 
     final Button startQuizBtn = view.findViewById(R.id.startQuizBtn);
     final Button openScoreBoardBtn = view.findViewById(R.id.scoreQuizBtn);
     final Button exitQuizBtn = view.findViewById(R.id.exitQuizBtn);
 
-    flagsQuiz.setOnClickListener(new View.OnClickListener() {
+    topic1.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        selectedQuiz = "flags";
-        flagsQuiz.setBackgroundResource(R.drawable.selected_background);
-        capitalsQuiz.setBackgroundResource(R.drawable.white_rounded_background);
-        historyQuiz.setBackgroundResource(R.drawable.white_rounded_background);
-        personsQuiz.setBackgroundResource(R.drawable.white_rounded_background);
+        selectedQuiz = "topic1";
+        topic1.setBackgroundResource(R.drawable.selected_background);
+        topic2.setBackgroundResource(R.drawable.white_rounded_background);
+        topic3.setBackgroundResource(R.drawable.white_rounded_background);
+        topic4.setBackgroundResource(R.drawable.white_rounded_background);
       }
     });
 
-    capitalsQuiz.setOnClickListener(new View.OnClickListener() {
+    topic2.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        selectedQuiz = "capitals";
-        capitalsQuiz.setBackgroundResource(R.drawable.selected_background);
-        flagsQuiz.setBackgroundResource(R.drawable.white_rounded_background);
-        historyQuiz.setBackgroundResource(R.drawable.white_rounded_background);
-        personsQuiz.setBackgroundResource(R.drawable.white_rounded_background);
+        selectedQuiz = "topic2";
+        topic2.setBackgroundResource(R.drawable.selected_background);
+        topic1.setBackgroundResource(R.drawable.white_rounded_background);
+        topic3.setBackgroundResource(R.drawable.white_rounded_background);
+        topic4.setBackgroundResource(R.drawable.white_rounded_background);
       }
     });
 
-    historyQuiz.setOnClickListener(new View.OnClickListener() {
+    topic3.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        selectedQuiz = "history";
-        historyQuiz.setBackgroundResource(R.drawable.selected_background);
-        capitalsQuiz.setBackgroundResource(R.drawable.white_rounded_background);
-        flagsQuiz.setBackgroundResource(R.drawable.white_rounded_background);
-        personsQuiz.setBackgroundResource(R.drawable.white_rounded_background);
+        selectedQuiz = "topic3";
+        topic3.setBackgroundResource(R.drawable.selected_background);
+        topic2.setBackgroundResource(R.drawable.white_rounded_background);
+        topic1.setBackgroundResource(R.drawable.white_rounded_background);
+        topic4.setBackgroundResource(R.drawable.white_rounded_background);
       }
     });
 
-    personsQuiz.setOnClickListener(new View.OnClickListener() {
+    topic4.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        selectedQuiz = "persons";
-        personsQuiz.setBackgroundResource(R.drawable.selected_background);
-        flagsQuiz.setBackgroundResource(R.drawable.white_rounded_background);
-        capitalsQuiz.setBackgroundResource(R.drawable.white_rounded_background);
-        historyQuiz.setBackgroundResource(R.drawable.white_rounded_background);
+        selectedQuiz = "topic4";
+        topic4.setBackgroundResource(R.drawable.selected_background);
+        topic1.setBackgroundResource(R.drawable.white_rounded_background);
+        topic2.setBackgroundResource(R.drawable.white_rounded_background);
+        topic3.setBackgroundResource(R.drawable.white_rounded_background);
       }
     });
 
